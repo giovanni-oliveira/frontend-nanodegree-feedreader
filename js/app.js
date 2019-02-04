@@ -41,6 +41,10 @@ function init() {
  * which will be called after everything has run successfully.
  */
  function loadFeed(id, cb) {
+    if(!Array.isArray(allFeeds)) {
+        throw new Error('Não foi possível acessar os Feeds');
+    }
+
      var feedUrl = allFeeds[id].url,
          feedName = allFeeds[id].name;
 
@@ -93,41 +97,58 @@ google.setOnLoadCallback(init);
  * until the DOM is ready.
  */
 $(function() {
-    var container = $('.feed'),
-        feedList = $('.feed-list'),
-        feedItemTemplate = Handlebars.compile($('.tpl-feed-list-item').html()),
-        feedId = 0,
-        menuIcon = $('.menu-icon-link');
+    const feedList = $('.feed-list');
+    const feedItemTemplate = Handlebars.compile($('.tpl-feed-list-item').html());
+    let feedId = 0;
+    const menuIcon = $('.menu-icon-link');
+    
+    
+    if(!Array.isArray(allFeeds)) {
+        throw new Error('Não foi possível acessar os Feeds');
+    }
 
-    /* Loop through all of our feeds, assigning an id property to
-     * each of the feeds based upon its index within the array.
-     * Then parse that feed against the feedItemTemplate (created
-     * above using Handlebars) and append it to the list of all
-     * available feeds within the menu.
+
+    /**
+     * Adiciona o ID do feed, escreve o HTML na página e atualiza o feedId
+     * 
+     * @function appendFeed
+     * @param {Object} feed
+     * @param {String} feed.url URL com os artigos relevantes 
+     * @param {String} feed.name Título da categoria
+     * @return {Object} Objeto feed com o ID adicionado
      */
-    allFeeds.forEach(function(feed) {
+    const appendFeed = feed => {
         feed.id = feedId;
         feedList.append(feedItemTemplate(feed));
-
         feedId++;
-    });
 
-    /* When a link in our feedList is clicked on, we want to hide
-     * the menu, load the feed, and prevent the default action
-     * (following the link) from occurring.
+        return feed;
+    };
+
+    
+    /**
+     * Carrega novo conteúdo para o Feed de acordo com o link clicado
+     * 
+     * @function loadNewFeed 'this' representa HTMLElement que possui o atributos 'data-id'
+     * @return {Boolean} 
      */
-    feedList.on('click', 'a', function() {
-        var item = $(this);
-
+    const loadNewFeed = function() {
+        var el = $(this);
+        
         $('body').addClass('menu-hidden');
-        loadFeed(item.data('id'));
+        loadFeed(el.data('id'));
         return false;
-    });
+    }
+    
 
-    /* When the menu icon is clicked on, we need to toggle a class
-     * on the body to perform the hiding/showing of our menu.
+    /**
+     * Ativa ou desativa o menu
+     * @function toggleMenu
      */
-    menuIcon.on('click', function() {
-        $('body').toggleClass('menu-hidden');
-    });
+    const toggleMenu = () => $('body').toggleClass('menu-hidden');
+
+
+    allFeeds.map(appendFeed);
+    feedList.on('click', 'a', loadNewFeed);
+    menuIcon.on('click', toggleMenu);
 }());
