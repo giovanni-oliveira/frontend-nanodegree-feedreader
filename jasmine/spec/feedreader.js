@@ -9,22 +9,22 @@
  * to ensure they don't run until the DOM is ready.
  */
 $(function () {
-    /**
-     * Checa se todos os objetos de um array possuem uma propriedade e se a mesma possui valor
-     * 
-     * @function hasPropValid
-     * @param {Array.<Object>} array Vetor de Objetos
-     * @param {String} prop Nome da propriedade a ser verificada
-     * @return {Boolean} Verdadeiro quando todos os objetos do vetor possuírem a propriedade especificada
-     */
-    const hasPropValid = (array, prop) => array.every(item => item[prop]);
-
-
     /* This is our first test suite - a test suite just contains
     * a related set of tests. This suite is all about the RSS
     * feeds definitions, the allFeeds variable in our application.
     */
     describe('RSS Feeds', () => {
+        /**
+         * Checa se todos os objetos de um array possuem uma propriedade e se a mesma possui valor
+         * 
+         * @function hasPropValid
+         * @param {Array.<Object>} array Vetor de Objetos
+         * @param {String} prop Nome da propriedade a ser verificada
+         * @return {Boolean} Verdadeiro quando todos os objetos do vetor possuírem a propriedade especificada
+         */
+        const hasPropValid = (array, prop) => array.every(item => item[prop]);
+
+        
         /* This is our first test - it tests to make sure that the
          * allFeeds variable has been defined and that it is not
          * empty. Experiment with this before you get started on
