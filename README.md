@@ -2,7 +2,7 @@
 
 Leitor de feed
 
-##Índice
+## Índice
 
 - [Instruções](#instrucoes)
 - [Contribuição](#contribuicao)
