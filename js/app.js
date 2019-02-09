@@ -6,7 +6,12 @@
  * jQuery.
  */
 
-// The names and URLs to all of the feeds we'd like available.
+
+/**
+ * The names and URLs to all of the feeds we'd like available
+ * 
+ * @type {Array.<{name: string, url: string}>}
+ */
 var allFeeds = [
     {
         name: 'Udacity Blog',
@@ -23,87 +28,123 @@ var allFeeds = [
     }
 ];
 
-/* This function starts up our application. The Google Feed
+
+/** This function starts up our application. The Google Feed
  * Reader API is loaded asynchonously and will then call this
  * function when the API is loaded.
+ * 
+ * @function init
  */
-function init() {
-    // Load the first feed we've defined (index of 0).
-    loadFeed(0);
-}
+const init = () => loadFeed(0);
 
-/* This function performs everything necessary to load a
+
+/** This function performs everything necessary to load a
  * feed using the Google Feed Reader API. It will then
  * perform all of the DOM operations required to display
  * feed entries on the page. Feeds are referenced by their
  * index position within the allFeeds array.
  * This function all supports a callback as the second parameter
  * which will be called after everything has run successfully.
+ * 
+ * @function loadFeed
  */
- function loadFeed(id, cb) {
-    if(!Array.isArray(allFeeds)) {
+const loadFeed =  function loadFeed(id, cb) {
+    if (!Array.isArray(allFeeds)) {
         throw new Error('Não foi possível acessar os Feeds');
+    };
+
+    const feedUrl = allFeeds[id].url;
+    const feedName = allFeeds[id].name;
+    const data = JSON.stringify({ url: feedUrl });
+
+
+    /**
+     * Adiciona o título da categoria do contéudo, os títulos dos artigos e executa a callback
+     * 
+     * @function callbackSucess
+     * @param {Object} result Resultado da busca pelo feed especificado
+     * @param {Object} result.feed Conteúdo do feed
+     * @param {Object} result.meta Metadados
+     * @param {String} status Estado da request
+     */
+    const callbackSucess = (result, status) => {        
+        const container = $('.feed');
+        const title = $('.header-title');
+        const entries = result.feed.entries;
+        const entriesLen = entries.length;
+        const entryTemplate = Handlebars.compile($('.tpl-entry').html());
+
+        /**
+         * Adiciona HTMLElement compilado pelo Handlebars
+         * 
+         * @param {Object} entry 
+         */
+        const appendArticles = entry => container.append(entryTemplate(entry));
+
+
+        /*! Altera a categoria dos artigos */
+        title.html(feedName);
+        /*! Remove o contéudo do container */
+        container.empty();
+        /*! Adiciona novos conteúdos */
+        entries.forEach(appendArticles);
+
+        if (cb) {
+            cb();
+        }
+    };
+
+
+    /**
+     * Executa a função de callback
+     * 
+     * @function callbackError
+     */
+    const callbackError = (result, status, err) => {
+        if (cb) {
+            cb();
+        }
+    };
+    
+
+    /** 
+     * Dados para requisição do novo Feed
+     * 
+     * @type {Object}
+     */
+    const request = {
+        type: "POST",
+        url: 'https://rsstojson.udacity.com/parseFeed',
+        data,
+        contentType: "application/json",
+        success:  callbackSucess,
+        error: callbackError,
+        dataType: "json"
     }
 
-     var feedUrl = allFeeds[id].url,
-         feedName = allFeeds[id].name;
 
-     $.ajax({
-       type: "POST",
-       url: 'https://rsstojson.udacity.com/parseFeed',
-       data: JSON.stringify({url: feedUrl}),
-       contentType:"application/json",
-       success: function (result, status){
+    $.ajax(request);
+}
 
-                 var container = $('.feed'),
-                     title = $('.header-title'),
-                     entries = result.feed.entries,
-                     entriesLen = entries.length,
-                     entryTemplate = Handlebars.compile($('.tpl-entry').html());
-
-                 title.html(feedName);   // Set the header text
-                 container.empty();      // Empty out all previous entries
-
-                 /* Loop through the entries we just loaded via the Google
-                  * Feed Reader API. We'll then parse that entry against the
-                  * entryTemplate (created above using Handlebars) and append
-                  * the resulting HTML to the list of entries on the page.
-                  */
-                 entries.forEach(function(entry) {
-                     container.append(entryTemplate(entry));
-                 });
-
-                 if (cb) {
-                     cb();
-                 }
-               },
-       error: function (result, status, err){
-                 //run only the callback without attempting to parse result due to error
-                 if (cb) {
-                     cb();
-                 }
-               },
-       dataType: "json"
-     });
- }
 
 /* Google API: Loads the Feed Reader API and defines what function
  * to call when the Feed Reader API is done loading.
  */
 google.setOnLoadCallback(init);
 
+
 /* All of this functionality is heavily reliant upon the DOM, so we
  * place our code in the $() function to ensure it doesn't execute
  * until the DOM is ready.
  */
-$(function() {
+$(function () {
     const feedList = $('.feed-list');
     const feedItemTemplate = Handlebars.compile($('.tpl-feed-list-item').html());
     let feedId = 0;
     const menuIcon = $('.menu-icon-link');
-    
-    
-    if(!Array.isArray(allFeeds)) {
+
+
+    if (!Array.isArray(allFeeds)) {
         throw new Error('Não foi possível acessar os Feeds');
     }
 
@@ -125,21 +166,21 @@ $(function() {
         return feed;
     };
 
-    
+
     /**
      * Carrega novo conteúdo para o Feed de acordo com o link clicado
      * 
      * @function loadNewFeed 'this' representa HTMLElement que possui o atributos 'data-id'
      * @return {Boolean} 
      */
-    const loadNewFeed = function() {
+    const loadNewFeed = function () {
         var el = $(this);
-        
+
         $('body').addClass('menu-hidden');
         loadFeed(el.data('id'));
         return false;
     }
-    
+
 
     /**
      * Ativa ou desativa o menu
